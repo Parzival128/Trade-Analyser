@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeAnalyzer - Your Trade Analysis Companion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #2e3a59;
+    }
+
+    /* Header */
+    header {
+      background: #007bff;
+      color: white;
+      padding: 20px 0;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+    }
+
+    /* Main Section */
+    .main-section {
+      background: white;
+      padding: 40px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      text-align: center;
+    }
+    .upload-btn {
+      padding: 15px 30px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    .upload-btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* Analysis Results */
+    .analysis-results {
+      margin-top: 30px;
+      text-align: left;
+    }
+    .analysis-results h2 {
+      color: #0056b3;
+    }
+    .analysis-box {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .loading {
+      font-size: 18px;
+      color: #007bff;
+    }
+
+    /* Footer */
+    footer {
+      background: #2e3a59;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>TradeAnalyzer</h1>
+    <p>Your Trade Analysis Companion</p>
+  </header>
+
+  <div class="container">
+    <div class="main-section">
+      <h2>Upload Your Trade Screenshot</h2>
+      <p>Simply upload a screenshot of your trade chart to get analysis and recommendations.</p>
+      <input type="file" id="tradeScreenshot" class="upload-btn" accept="image/*" />
+      
+      <!-- Loading Message -->
+      <div id="loadingMessage" class="loading" style="display: none;">Processing image...</div>
+
+      <!-- OCR & Analysis Results -->
+      <div id="ocrOutput" class="analysis-results"></div>
+      <div id="tradeAnalysis" class="analysis-results"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 TradeAnalyzer. All rights reserved.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.0"></script>
+  <script>
+    // Handle file upload and processing
+    document.getElementById('tradeScreenshot').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const image = e.target.result;
+          
+          // Show loading message
+          document.getElementById('ocrOutput').style.display = 'none';
+          document.getElementById('tradeAnalysis').style.display = 'none';
+          document.getElementById('loadingMessage').style.display = 'block';
+
+          // Perform OCR to extract text
+          Tesseract.recognize(image, 'eng', { logger: m => console.log(m) })
+          .then(({ data: { text } }) => {
+            // Hide loading and show extracted text
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('ocrOutput').style.display = 'block';
+            document.getElementById('ocrOutput').innerHTML = `<strong>Extracted Data:</strong><pre>${text}</pre>`;
+            
+            // Call function for analyzing the chart and generating trade suggestions
+            analyzeTradeChart(text);
+          })
+          .catch(error => {
+            console.error('OCR Error:', error);
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('ocrOutput').style.display = 'block';
+            document.getElementById('ocrOutput').textContent = "Error processing image.";
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Analyze the trade based on extracted text
+    function analyzeTradeChart(extractedText) {
+      let analysisResult = "<h2>Trade Suggestions:</h2>";
+      if (extractedText.includes("buy") || extractedText.includes("long")) {
+        analysisResult += "<div class='analysis-box'><strong>Suggestion:</strong> Consider buying (long position).</div>";
+      } else if (extractedText.includes("sell") || extractedText.includes("short")) {
+        analysisResult += "<div class='analysis-box'><strong>Suggestion:</strong> Consider selling (short position).</div>";
+      } else {
+        analysisResult += "<div class='analysis-box'><strong>Suggestion:</strong> No clear suggestion. Please check your chart again.</div>";
+      }
+      
+      // Add liquidity and order block analysis (example of real-time API)
+      analysisResult += "<h2>Liquidity & Order Block Analysis:</h2>";
+      analysisResult += "<div class='analysis-box'>Fetching real-time market data...</div>";
+      document.getElementById('tradeAnalysis').style.display = 'block';
+      document.getElementById('tradeAnalysis').innerHTML = analysisResult;
+
+      // Simulate fetching market data (replace with actual API calls)
+      setTimeout(() => {
+        document.querySelector('.analysis-box').innerHTML = "Liquidity Data: Strong support at $45,000. Possible buy zone.";
+      }, 2000);
+    }
+  </script>
+
+</body>
+</html>
